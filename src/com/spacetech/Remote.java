@@ -44,7 +44,7 @@ public class Remote extends AnAction {
 			}
 			String errorLine;
 			while ((errorLine = shellErrorResultReader.readLine()) != null) {
-				output.append("分支更新信息:{" + errorLine + "}\n");
+				output.append("分支更新:{" + errorLine + "}\n");
 			}
 			// 等待程序执行结束并输出状态
 			Integer exitCode = p.waitFor();
