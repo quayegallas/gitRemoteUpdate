@@ -20,7 +20,6 @@ public class Remote extends AnAction {
 
 	@Override
 	public void actionPerformed(AnActionEvent e) {
-		// TODO: insert action logic here
 		StringBuffer output = new StringBuffer();
 		Process p;
 		InputStreamReader inputStreamReader = null;
@@ -34,15 +33,31 @@ public class Remote extends AnAction {
 			inputStreamReader = new InputStreamReader(p.getInputStream(), "UTF-8");
 			reader = new BufferedReader(inputStreamReader);
 			line = reader.readLine();
-			p = Runtime.getRuntime().exec(line + " remote update origin -p", null, new File(trueUrl));
-			p.waitFor();
-			inputStreamReader = new InputStreamReader(p.getInputStream(), "UTF-8");
-			reader = new BufferedReader(inputStreamReader);
-			while ((line = reader.readLine()) != null) {
-				output.append(line + "\n");
+			String cmd = line + " remote update origin -p";
+			p = Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", "git remote update origin -p" }, null,
+					new File(trueUrl));
+			BufferedReader shellErrorResultReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			BufferedReader shellInfoResultReader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String infoLine;
+			while ((infoLine = shellInfoResultReader.readLine()) != null) {
+				output.append("脚本文件执行信息:{}" + infoLine + "\n");
 			}
-			System.out.println(output.toString());
-			Messages.showMessageDialog("正在更新..", "更新远端分支", Messages.getInformationIcon());
+			String errorLine;
+			while ((errorLine = shellErrorResultReader.readLine()) != null) {
+				output.append("脚本文件执行信息:{}" + errorLine + "\n");
+			}
+			// 等待程序执行结束并输出状态
+			Integer exitCode = p.waitFor();
+			if (0 == exitCode) {
+				output.append("脚本文件执行成功:" + exitCode + "\n");
+			} else {
+				output.append("脚本文件执行失败:" + exitCode + "\n");
+			}
+			p.destroy();
+			// UpdateRu updateRu = new UpdateRu();
+			// updateRu.setE(e);
+			// updateRu.start();
+			Messages.showMessageDialog("正在更新..\n" + output.toString(), "更新远端分支", Messages.getInformationIcon());
 		} catch (UnsupportedEncodingException ex) {
 			ex.printStackTrace();
 		} catch (IOException ex) {
