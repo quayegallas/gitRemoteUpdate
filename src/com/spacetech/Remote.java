@@ -40,18 +40,18 @@ public class Remote extends AnAction {
 			BufferedReader shellInfoResultReader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String infoLine;
 			while ((infoLine = shellInfoResultReader.readLine()) != null) {
-				output.append("脚本文件执行信息:{}" + infoLine + "\n");
+				output.append("分支更新信息:{" + infoLine + "}\n");
 			}
 			String errorLine;
 			while ((errorLine = shellErrorResultReader.readLine()) != null) {
-				output.append("脚本文件执行信息:{}" + errorLine + "\n");
+				output.append("分支更新失败:{" + errorLine + "}\n");
 			}
 			// 等待程序执行结束并输出状态
 			Integer exitCode = p.waitFor();
 			if (0 == exitCode) {
-				output.append("脚本文件执行成功:" + exitCode + "\n");
+				output.append("分支更新成功:{" + exitCode + "}\n");
 			} else {
-				output.append("脚本文件执行失败:" + exitCode + "\n");
+				output.append("分支更新失败:{" + exitCode + "}\n");
 			}
 			p.destroy();
 			// UpdateRu updateRu = new UpdateRu();
