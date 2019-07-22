@@ -1,13 +1,9 @@
 package com.spacetech;
 
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.content.Content;
 
 import java.io.*;
 
@@ -22,18 +18,11 @@ public class Remote extends AnAction {
 	public void actionPerformed(AnActionEvent e) {
 		StringBuffer output = new StringBuffer();
 		Process p;
-		InputStreamReader inputStreamReader = null;
-		BufferedReader reader = null;
 		Project project = e.getProject();
 		String url = project.getProjectFilePath();
 		String trueUrl = url.substring(0, url.indexOf("/.idea"));
-		String line = "";
+		String headName = "";
 		try {
-			p = Runtime.getRuntime().exec("which git");
-			inputStreamReader = new InputStreamReader(p.getInputStream(), "UTF-8");
-			reader = new BufferedReader(inputStreamReader);
-			line = reader.readLine();
-			String cmd = line + " remote update origin -p";
 			p = Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", "git remote update origin -p" }, null,
 					new File(trueUrl));
 			BufferedReader shellErrorResultReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
@@ -53,10 +42,24 @@ public class Remote extends AnAction {
 			} else {
 				output.append("分支更新失败:{" + exitCode + "}\n");
 			}
+			p = Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", "git symbolic-ref --short -q HEAD" }, null,
+					new File(trueUrl));
+			shellErrorResultReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			shellInfoResultReader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			while ((infoLine = shellInfoResultReader.readLine()) != null) {
+				headName = infoLine;
+			}
+			p = Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", "git branch -u origin/" + headName }, null,
+					new File(trueUrl));
+			shellErrorResultReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			shellInfoResultReader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			while ((infoLine = shellInfoResultReader.readLine()) != null) {
+				output.append(infoLine);
+			}
+			while ((infoLine = shellErrorResultReader.readLine()) != null) {
+				output.append(infoLine);
+			}
 			p.destroy();
-			// UpdateRu updateRu = new UpdateRu();
-			// updateRu.setE(e);
-			// updateRu.start();
 			Messages.showMessageDialog("正在更新..\n" + output.toString(), "更新远端分支", Messages.getInformationIcon());
 		} catch (UnsupportedEncodingException ex) {
 			ex.printStackTrace();
